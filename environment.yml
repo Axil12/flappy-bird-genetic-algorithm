@@ -1,0 +1,12 @@
+name: flappy_bird
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python
+  - numpy
+  - pygame
+  - tqdm
+  - black
