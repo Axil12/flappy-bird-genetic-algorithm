@@ -59,20 +59,16 @@ class Bird:
             if double_pipe.pos[0] + double_pipe.thickness > self.pos[0]:
                 return double_pipe
 
-    def sensors(self, double_pipe):
+    def sensors(self, double_pipe) -> list[float]:
         """returns the y position of the bird and the x and y position of the gap of the given double pipe"""
         gap_x_and_y = double_pipe.get_gap_x_and_y()
-        # distance_to_pipe_start = gap_x_and_y[0] - self.pos[0]
-        # distance_to_pipe_end = distance_to_pipe_start + double_pipe.thickness
-        # return [self.pos[1], distance_to_pipe_start, distance_to_pipe_end, gap_x_and_y[1]]
-        return (
-            [self.pos[1], self.vel[1]]
-            + gap_x_and_y
-            + [
-                gap_x_and_y[0] + double_pipe.thickness,
-                gap_x_and_y[1] + double_pipe.gap_height,
-            ]
-        )
+        y_pos = self.pos[1]
+        y_vel = self.vel[1]
+        gap_x_front = gap_x_and_y[0]
+        gap_x_back = gap_x_front + double_pipe.thickness
+        gap_top = gap_x_and_y[1]
+        gap_bottom = gap_top + double_pipe.gap_height
+        return [y_pos, y_vel, gap_x_front, gap_x_back, gap_top, gap_bottom]
 
     def calculate_fitness(self):
         self.fitness = self.time_survived**2 + (self.score * 300) ** 2
