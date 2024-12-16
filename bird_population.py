@@ -42,7 +42,7 @@ class BirdPopulation:
 
     def select_parents(
         self, allow_clone: bool = False
-    ) -> tuple[NeuralNework, NeuralNework]:
+    ) -> tuple[Bird, Bird]:
         rand = random.uniform(0, self.fitness_sum)
         running_sum = 0
         for bird in self.birds:
@@ -51,13 +51,24 @@ class BirdPopulation:
                 parent_1 = bird
                 break
 
-        rand = random.uniform(0, self.fitness_sum)
-        running_sum = 0
-        for bird in self.birds:
-            running_sum += bird.fitness
-            if running_sum > rand:
-                parent_2 = bird
-                break
+        if allow_clone:
+            rand = random.uniform(0, self.fitness_sum)
+            running_sum = 0
+            for bird in self.birds:
+                running_sum += bird.fitness
+                if running_sum > rand:
+                    parent_2 = bird
+                    break
+        else:
+            parent_2 = parent_1
+            while parent_2 == parent_1:
+                rand = random.uniform(0, self.fitness_sum)
+                running_sum = 0
+                for bird in self.birds:
+                    running_sum += bird.fitness
+                    if running_sum > rand:
+                        parent_2 = bird
+                        break
 
         return parent_1, parent_2
 
