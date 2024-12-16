@@ -41,7 +41,12 @@ class Ground:
 
 class DoublePipe:
     def __init__(
-        self, screen_width, screen_height, gap_pos, gap_height=150, color=(0, 255, 0)
+        self,
+        screen_width: int,
+        screen_height: int,
+        gap_pos: float,
+        gap_height=150,
+        color=(0, 255, 0),
     ):
         self.pos = [screen_width, 0]
         self.color = color
