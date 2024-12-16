@@ -17,6 +17,7 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
     for col in range(n_cols - 1):
         w_min = np.min(weights[col])
         w_max = np.max(weights[col])
+        w_max_abs = max(abs(w_min), abs(w_max))
         for row in range(layer_dims[col]):
             pos_1 = (
                 position[0] + col * width // n_cols + r,
@@ -27,14 +28,14 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
                     position[0] + (col + 1) * width // n_cols + r,
                     position[1] + next_row * height // n_rows + r,
                 )
-                alpha = weights[col][next_row][row]
-                alpha = int((alpha - w_min) / (w_max - w_min) * 255)
-                line_width = int(alpha / 255 * 5 + 1)
-                if alpha == 0:
+
+                w = weights[col][next_row][row]
+                value = int(abs(w) / w_max_abs * 255)
+                line_width = int(value / 255 * 5 + 1)
+                if value == 0:
                     line_width = 0
-                pygame.draw.line(
-                    surface, (0, alpha, 0, alpha), pos_1, pos_2, width=line_width
-                )
+                line_color = (0, value, 0) if w > 0 else (value, 0, 0)
+                pygame.draw.line(surface, line_color, pos_1, pos_2, width=line_width)
 
     # Drawing circles
     for col in range(n_cols):
@@ -52,6 +53,5 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
                 alpha = layer_outputs[col][row]
                 alpha = int((alpha - o_min) / (o_max - o_min) * 255)
 
-            pygame.draw.circle(surface, (0, 255, 0), center, r+1)
+            pygame.draw.circle(surface, (0, 255, 0), center, r + 1)
             pygame.draw.circle(surface, (0, 0, alpha), center, r)
-            
