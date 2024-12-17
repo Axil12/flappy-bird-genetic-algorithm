@@ -56,15 +56,16 @@ class NeuralNework:
         return x
 
     def get_layers_outputs(self, x: np.ndarray) -> list[np.ndarray]:
-        result = [x]
+        result = []
 
         x = np.concatenate([x, [[1]]], axis=0)  # Adding bias
+        result.append(x)
 
         for weights in [self.whi] + self.whh_list:
             x = np.dot(weights, x)
             x = self.activation(x)
-            result.append(x)
             x = np.concatenate([x, [[1]]], axis=0)  # Adding bias
+            result.append(x)
 
         x = np.dot(self.woh, x)
         x = self.activation(x)
