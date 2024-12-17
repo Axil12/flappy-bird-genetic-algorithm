@@ -18,7 +18,7 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
         w_min = np.min(weights[col])
         w_max = np.max(weights[col])
         w_max_abs = max(abs(w_min), abs(w_max))
-        for row in range(layer_dims[col]):
+        for row in range(len(layer_outputs[col])):
             pos_1 = (
                 position[0] + col * width // n_cols + r,
                 position[1] + row * height // n_rows + r,
@@ -41,7 +41,7 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
     for col in range(n_cols):
         o_min = np.min(layer_outputs[col])
         o_max = np.max(layer_outputs[col])
-        for row in range(layer_dims[col]):
+        for row in range(len(layer_outputs[col])):
             center = (
                 position[0] + col * width // n_cols + r,
                 position[1] + row * height // n_rows + r,
