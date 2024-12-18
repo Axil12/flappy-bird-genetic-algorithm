@@ -3,10 +3,8 @@ from math import exp
 import pygame
 import numpy as np
 
-from neural_network import NeuralNework
 from bird_class import Bird
 from obstacles import DoublePipe
-
 
 def draw_neural_network(surface, position, width, height, net, layer_outputs):
     n_cols = len(net.dims)
