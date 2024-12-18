@@ -1,11 +1,18 @@
 from math import exp, log, tanh
 import random
 import types
+from typing import Self
+import os
 
 import numpy as np
 
 
-class NeuralNework:
+def isalambda(v):
+    LAMBDA = lambda: 0
+    return isinstance(v, type(LAMBDA)) and v.__name__ == LAMBDA.__name__
+
+
+class NeuralNetwork:
     """
     Dense neural network
 
@@ -35,7 +42,7 @@ class NeuralNework:
         self.weight_min_val = -1
         self.weight_max_val = 1
 
-        self.activation = activation or NeuralNework.relu
+        self.activation = activation or NeuralNetwork.relu
         self.dims = dimensions
         self.weights = [
             np.random.uniform(
@@ -46,7 +53,7 @@ class NeuralNework:
             for i in range(len(self.dims) - 1)
         ]
 
-    def output(self, x: np.ndarray) -> np.ndarray:
+    def __call__(self, x: np.ndarray) -> np.ndarray:
         """
         Takes an input vector, feeds it to the neural network, and returns an output vector.
         """
@@ -68,7 +75,7 @@ class NeuralNework:
 
     @staticmethod
     def crossover(net_1, net_2):
-        child = NeuralNework(net_1.dims, net_1.activation)
+        child = NeuralNetwork(net_1.dims, net_1.activation)
 
         for k in range(len(child.weights)):
             for i in range(child.weights[k].shape[0]):
@@ -81,7 +88,7 @@ class NeuralNework:
         return child
 
     def clone(self):
-        clone = NeuralNework(self.dims, self.activation)
+        clone = NeuralNetwork(self.dims, self.activation)
 
         for i in range(len(self.weights)):
             clone.weights[i] = np.copy(self.weights[i])
@@ -101,15 +108,65 @@ class NeuralNework:
                             self.weight_min_val, self.weight_max_val
                         )
 
+    def save(self, directory: str, filename: str | None = None) -> None:
+        dims_str = "-".join([str(dim) for dim in self.dims])
+
+        # The following lines aim to convert self.activation into a string representing its name
+        activation_function_name = None
+        possible_activations = [
+            (key, val) for key, val in NeuralNetwork.__dict__.items() if isalambda(val)
+        ]
+        for act_name, act_func in possible_activations:
+            if self.activation is act_func:
+                activation_function_name = act_name
+                break
+
+        if activation_function_name is None:
+            raise ValueError("Couldn't identify the activation function")
+
+        new_filename = f"{dims_str}_{activation_function_name}.npz"
+        if filename is not None:
+            new_filename = f"{filename}_{new_filename}"
+
+        file_path = os.path.join(directory, new_filename)
+        np.savez(file_path, *self.weights)
+
+        return file_path
+
+    @staticmethod
+    def load(filename) -> Self:
+        weights = []
+        with open(filename, "rb") as f:
+            npz_file = np.load(f)
+            weights = [npz_file[key] for key in npz_file.keys()]
+
+        output_dim = weights[-1].shape[0]
+        dims = [w.shape[1] - 1 for w in weights] + [output_dim]
+
+        func_name = filename.replace(".npz", "").split("_")[-1]
+        possible_activations = {
+            key: val for key, val in NeuralNetwork.__dict__.items() if isalambda(val)
+        }
+        try:
+            act_func = possible_activations[func_name]
+        except KeyError:
+            raise KeyError(
+                "Couldn't infer the activation function of the loaded neural network."
+            )
+
+        net = NeuralNetwork(dims, activation=act_func)
+        net.weights = weights
+
+        return net
+
 
 def main():
-    net = NeuralNework((3, 2), activation=NeuralNework.softplus)
-    x = np.random.rand(3, 1)
+    net = NeuralNetwork((6, 5, 7, 6, 4), activation=NeuralNetwork.silu)
+    x = np.random.rand(6, 1)
     net.clone()
-    NeuralNework.crossover(net, net)
+    NeuralNetwork.crossover(net, net)
     net.mutate(0.5)
-    print(net.output(x))
-    print(np.argmax(net.output(x)))
+    print(net(x))
 
 
 if __name__ == "__main__":
