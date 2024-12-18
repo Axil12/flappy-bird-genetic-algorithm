@@ -20,16 +20,17 @@ def main():
         pygame.image.load("sprites/background.png"), (screen_width, screen_height)
     )
 
-    #net_dims = (6, (5, 3), 1)
-    net_dims = (6, (4, ), 1)
-    pop_size = 400
+    net_dims = (6, 5, 3, 1)
+    # net_dims = (6, 4, 1)
+    # net_dims = (6, 1)
+    pop_size = 200
     nb_generations = 1000
 
     pop = BirdPopulation(
         population_size=pop_size,
         neural_network_dims=net_dims,
-        # neural_network_activation=NeuralNework.step,
-        neural_network_activation=NeuralNework.relu,
+        neural_network_activation=NeuralNework.step,
+        # neural_network_activation=NeuralNework.relu,
         # neural_network_activation=NeuralNework.leaky_relu,
         # neural_network_activation=NeuralNework.sigmoid,
         # neural_network_activation=NeuralNework.softplus,
@@ -75,11 +76,13 @@ def main():
                     continue
 
                 bird.time_survived += 1
-                net_input = bird.sensors(bird.get_next_double_pipe(double_pipes), screen)
+                net_input = bird.sensors(
+                    bird.get_next_double_pipe(double_pipes), screen
+                )
                 net_input = np.array(net_input).T
                 net_input = net_input.reshape((net_input.shape[0], 1))
                 net_output = bird.net.output(net_input)
-                #if np.argmax(net_output) == 1:
+                # if np.argmax(net_output) == 1:
                 if net_output > 0.5:
                     bird.flap()
                 bird.update(screen)
