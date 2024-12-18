@@ -9,11 +9,8 @@ from obstacles import DoublePipe
 
 
 def draw_neural_network(surface, position, width, height, net, layer_outputs):
-    layer_dims = [net.nb_inputs] + list(net.hidden_layers) + [net.nb_outputs]
-    weights = [net.whi] + list(net.whh_list) + [net.woh]
-
-    n_cols = len(layer_dims)
-    n_rows = max(layer_dims)
+    n_cols = len(net.dims)
+    n_rows = max(net.dims)
 
     r = 12  # radius of the circles drawn
 
@@ -25,13 +22,13 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
                 position[0] + col * width // n_cols + r,
                 position[1] + row * height // n_rows + r,
             )
-            for next_row in range(layer_dims[col + 1]):
+            for next_row in range(net.dims[col + 1]):
                 pos_2 = (
                     position[0] + (col + 1) * width // n_cols + r,
                     position[1] + next_row * height // n_rows + r,
                 )
 
-                w = weights[col][next_row][row]
+                w = net.weights[col][next_row][row]
                 value = int(abs(w) / w_max_abs * 255)
                 line_width = int(value / 255 * 5 + 1)
                 if abs(w) / w_max_abs < 0.02:
@@ -41,7 +38,7 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
                 )  # Green if weight > 0, else Red
                 pygame.draw.line(surface, line_color, pos_1, pos_2, width=line_width)
 
-    font = pygame.font.Font('freesansbold.ttf', 10)
+    font = pygame.font.Font("freesansbold.ttf", 10)
     # Drawing circles
     for col in range(n_cols):
         layer_val_min = np.min(layer_outputs[col])
@@ -62,14 +59,11 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
                 circle_color = (0, int(value * 255), 0)
             pygame.draw.circle(surface, circle_color, center, r)
             text = font.render(
-                f"{float(neuron_value):.2f}",
-                True, # antialiasing
-                (0, 0, 255)
-                )
+                f"{float(neuron_value):.2f}", True, (0, 0, 255)  # antialiasing
+            )
             text_rect = text.get_rect()
             text_rect.center = center
             surface.blit(text, text_rect)
-            
 
 
 def draw_info(
