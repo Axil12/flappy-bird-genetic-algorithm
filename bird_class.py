@@ -1,11 +1,21 @@
+import random
 from math import atan2, pi
 
 import pygame
 from pygame.locals import K_SPACE
 
+from obstacles import DoublePipe
+
 
 class Bird:
-    def __init__(self, sprite, x=20, y=100, size=10, flap_force=15):
+    def __init__(
+        self,
+        sprite: str,
+        x: int = 20,
+        y: int = 100,
+        size: int = 10,
+        flap_force: float = 15,
+    ):
         self.size = size
         self.flap_force = flap_force
 
@@ -21,6 +31,9 @@ class Bird:
         self.sprite = pygame.transform.scale(
             pygame.image.load(sprite), (size * 4, size * 4)
         )
+        self.sprite_alt = pygame.transform.scale(
+            pygame.image.load("sprites/zubat_shiny.png"), (size * 4, size * 4)
+        )
         self.sprite_rect = self.sprite.get_rect(topleft=self.pos)
         self.collision_rect = pygame.Rect(self.sprite.get_rect(topleft=self.pos))
 
@@ -32,11 +45,11 @@ class Bird:
         self.vel[1] -= self.flap_force
         self.vel[1] = max(self.vel[1], self.vel_y_lim)
 
-    def fall(self, gravity=1):
+    def fall(self, gravity: float = 1):
         self.vel[1] += gravity
         self.pos[1] += self.vel[1]
 
-    def update(self, surface):
+    def update(self, surface: pygame.Surface):
         self.fall()
         self.collision_rect = pygame.Rect(self.sprite.get_rect(topleft=self.pos))
 
@@ -53,21 +66,28 @@ class Bird:
             if self.score == 0:
                 self.time_survived // 2
 
-    def get_next_double_pipe(self, double_pipe_list):
+    def get_next_double_pipe(self, double_pipe_list: list[DoublePipe]):
         """Gets the next double pipe from a list of position ordered Double_pipe objects"""
         for double_pipe in double_pipe_list:
             if double_pipe.pos[0] + double_pipe.thickness > self.pos[0]:
                 return double_pipe
 
-    def sensors(self, double_pipe) -> list[float]:
+    def sensors(self, double_pipe: DoublePipe, screen: pygame.Surface) -> list[float]:
         """returns the y position of the bird and the x and y position of the gap of the given double pipe"""
+        # We need these informations in order to normalize the data
+        screen_width, screen_height = screen.get_size()
+
         gap_x_and_y = double_pipe.get_gap_x_and_y()
-        y_pos = self.pos[1]
-        y_vel = self.vel[1]
-        gap_x_front = gap_x_and_y[0]
-        gap_x_back = gap_x_front + double_pipe.thickness
-        gap_top = gap_x_and_y[1]
-        gap_bottom = gap_top + double_pipe.gap_height
+        y_pos = self.pos[1] / screen_height
+        y_vel = self.vel[1] / abs(self.vel_y_lim)
+        gap_x_front = gap_x_and_y[0] / screen_width
+        gap_x_back = gap_x_front + double_pipe.thickness / screen_width
+        gap_top = gap_x_and_y[1] / screen_height
+        gap_bottom = gap_top + double_pipe.gap_height / screen_height
+
+        # To test if the neural network can learn that this input is useless
+        # gap_bottom = random.uniform(-150, 150)
+
         return [y_pos, y_vel, gap_x_front, gap_x_back, gap_top, gap_bottom]
 
     def calculate_fitness(self):
