@@ -1,4 +1,4 @@
-from math import exp, log
+from math import exp, log, tanh
 import random
 import types
 
@@ -8,13 +8,24 @@ import numpy as np
 class NeuralNework:
     """
     Dense neural network
+
+    Because that neural network is going to learn through natural selection,
+    there is no backpropagation. As a result, we can try some funky
+    activation functions.
     """
 
-    relu = np.vectorize(lambda x: max(0, x))
-    leaky_relu = np.vectorize(lambda x: max(0.01 * x, x))
-    step = np.vectorize(lambda x: int(x > 0))
-    sigmoid = np.vectorize(lambda x: 1 / (1 + exp(-np.clip(x, -100, 100))))
-    softplus = np.vectorize(lambda x: log(1 + exp(np.clip(x, -100, 100))))
+    relu = lambda x: np.where(x > 0, x, 0)
+    leaky_relu = lambda x: np.where(x > 0, x, 0.01 * x)
+    step = lambda x: np.where(x > 0, 1, 0)
+    sigmoid = lambda x: 1 / (1 + np.exp(-x))
+    softplus = lambda x: np.log(1 + np.exp(-x))
+    silu = lambda x: x / (1 + np.exp(-x))  # silu(x) = x * sigmoid(x)
+    gelu = (
+        lambda x: 0.5 * x * (1 + np.tanh(0.7978845608 * (x + 0.044715 * np.pow(x, 3))))
+    )
+    elu = lambda x: np.where(x > 0, x, np.exp(x) - 1)
+    square = lambda x: np.pow(x, 2)
+    cube = lambda x: np.pow(x, 3)
 
     def __init__(
         self,
@@ -28,17 +39,32 @@ class NeuralNework:
         self.nb_outputs = nb_outputs
         self.activation = activation or NeuralNework.relu
 
+        self.weight_min_val = -1
+        self.weight_max_val = 1
+
         # Weights of the input->hidden[0] layer
-        self.whi = np.random.rand(self.hidden_layers[0], self.nb_inputs + 1) * 2 - 1
+        self.whi = np.random.uniform(
+            self.weight_min_val,
+            self.weight_max_val,
+            (self.hidden_layers[0], self.nb_inputs + 1),
+        )
 
         # Weights of the input->hidden[0] layer
         self.whh_list = [
-            np.random.rand(self.hidden_layers[i + 1], self.hidden_layers[i] + 1) * 2 - 1
+            np.random.uniform(
+                self.weight_min_val,
+                self.weight_max_val,
+                (self.hidden_layers[i + 1], self.hidden_layers[i] + 1),
+            )
             for i in range(len(self.hidden_layers) - 1)
         ]
 
         # Weights of the hidden[-1]->output layer
-        self.woh = np.random.rand(self.nb_outputs, self.hidden_layers[-1] + 1) * 2 - 1
+        self.woh = np.random.uniform(
+            self.weight_min_val,
+            self.weight_max_val,
+            (self.nb_outputs, self.hidden_layers[-1] + 1),
+        )
 
     def output(self, x: np.ndarray) -> np.ndarray:
         """
@@ -84,7 +110,7 @@ class NeuralNework:
                     child.whi[i][j] = net_1.whi[i][j]
                 else:
                     child.whi[i][j] = net_2.whi[i][j]
-        
+
         for k in range(len(child.whh_list)):
             for i in range(child.whh_list[k].shape[0]):
                 for j in range(child.whh_list[k].shape[1]):
@@ -92,7 +118,7 @@ class NeuralNework:
                         child.whh_list[k][i][j] = net_1.whh_list[k][i][j]
                     else:
                         child.whh_list[k][i][j] = net_2.whh_list[k][i][j]
-        
+
         for i in range(child.woh.shape[0]):
             for j in range(child.woh.shape[1]):
                 if random.random() < 0.5:
@@ -101,20 +127,6 @@ class NeuralNework:
                     child.woh[i][j] = net_2.woh[i][j]
 
         return child
-
-        # half = child.whi.shape[0] // 2
-        # child.whi = np.concatenate([net_1.whi[:half, :], net_2.whi[half:, :]], axis=0)
-
-        # for i, (net_1_whh, net_2_whh) in enumerate(zip(net_1.whh_list, net_2.whh_list)):
-        #     half = net_1_whh.shape[0] // 2
-        #     child.whh_list[i] = np.concatenate(
-        #         [net_1_whh[:half, :], net_2_whh[half:, :]], axis=0
-        #     )
-
-        # half = child.woh.shape[0] // 2
-        # child.woh = np.concatenate([net_1.woh[:half, :], net_2.woh[half:, :]], axis=0)
-
-        # return child
 
     def clone(self):
         clone = NeuralNework(
@@ -135,7 +147,9 @@ class NeuralNework:
             for i in range(0, weight_matrix.shape[0], 1):
                 for j in range(0, weight_matrix.shape[1], 1):
                     if random.random() < mutation_rate:
-                        weight_matrix[i][j] = random.random() * 2 + 1
+                        weight_matrix[i][j] = random.uniform(
+                            self.weight_min_val, self.weight_max_val
+                        )
 
 
 def main():
