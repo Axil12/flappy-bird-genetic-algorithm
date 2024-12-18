@@ -4,7 +4,7 @@ import pygame
 import numpy as np
 from tqdm import tqdm
 
-from neural_network import NeuralNework
+from neural_network import NeuralNetwork
 from bird_population import BirdPopulation
 from bird_class import Bird
 from obstacles import Ground, DoublePipe
@@ -22,23 +22,24 @@ def main():
 
     net_dims = (6, 5, 3, 1)
     # net_dims = (6, 4, 1)
-    # net_dims = (6, 1)
+    #net_dims = (6, 1)
     pop_size = 200
     nb_generations = 1000
 
     pop = BirdPopulation(
         population_size=pop_size,
         neural_network_dims=net_dims,
-        neural_network_activation=NeuralNework.step,
-        # neural_network_activation=NeuralNework.relu,
-        # neural_network_activation=NeuralNework.leaky_relu,
-        # neural_network_activation=NeuralNework.sigmoid,
-        # neural_network_activation=NeuralNework.softplus,
-        # neural_network_activation=NeuralNework.silu,
-        # neural_network_activation=NeuralNework.gelu,
-        # neural_network_activation=NeuralNework.elu,
-        # neural_network_activation=NeuralNework.square,
+        # neural_network_activation=NeuralNetwork.step,
+        # neural_network_activation=NeuralNetwork.relu,
+        neural_network_activation=NeuralNetwork.leaky_relu,
+        # neural_network_activation=NeuralNetwork.sigmoid,
+        # neural_network_activation=NeuralNetwork.softplus,
+        # neural_network_activation=NeuralNetwork.silu,
+        # neural_network_activation=NeuralNetwork.gelu,
+        # neural_network_activation=NeuralNetwork.elu,
+        # neural_network_activation=NeuralNetwork.square,
         # neural_network_activation=lambda x: np.cos(x),
+        # neural_network_activation=lambda x: x,
         bird_sprite="sprites/zubat.png",
     )
     for _ in range(nb_generations):
@@ -81,7 +82,7 @@ def main():
                 )
                 net_input = np.array(net_input).T
                 net_input = net_input.reshape((net_input.shape[0], 1))
-                net_output = bird.net.output(net_input)
+                net_output = bird.net(net_input)
                 # if np.argmax(net_output) == 1:
                 if net_output > 0.5:
                     bird.flap()
@@ -116,15 +117,21 @@ def main():
 
             current_best_score = max([bird.score for bird in pop.birds])
             birds_alive = sum([not bird.is_dead for bird in pop.birds])
+            best_fitness = max([bird.fitness for bird in pop.birds])
+            for bird in pop.birds:
+                if bird.fitness == best_fitness:
+                    best_bird = bird
             pygame.display.set_caption(
                 f"Flappy Bird | Birds alive : {birds_alive:03d} | Score : {current_best_score}"
             )
             pygame.display.update()
 
             tick_passed += 1
+
             if birds_alive == 0:
                 break
-            if current_best_score > 1000:
+            if current_best_score >= 1000:
+                bird.net.save(directory="saved_neural_networks")
                 break
 
         average_score = sum([bird.score for bird in pop.birds]) / len(pop.birds)
