@@ -6,7 +6,7 @@ import numpy as np
 from tqdm import tqdm
 
 from bird_class import Bird
-from neural_network import NeuralNework
+from neural_network import NeuralNetwork
 
 
 class BirdPopulation:
@@ -24,7 +24,7 @@ class BirdPopulation:
         self.birds = []
         for i in range(population_size):
             bird = Bird(self.bird_sprite)
-            bird.net = NeuralNework(
+            bird.net = NeuralNetwork(
                 neural_network_dims, activation=neural_network_activation
             )
             self.birds.append(bird)
@@ -72,7 +72,7 @@ class BirdPopulation:
 
     def reproduce(self, parent_1, parent_2):
         child = Bird(self.bird_sprite)
-        child.net = NeuralNework.crossover(parent_1.net, parent_2.net)
+        child.net = NeuralNetwork.crossover(parent_1.net, parent_2.net)
         return child
 
     def mutate(self, mutation_rate: float) -> None:
