@@ -8,22 +8,37 @@ from neural_network import NeuralNework
 from bird_population import BirdPopulation
 from bird_class import Bird
 from obstacles import Ground, DoublePipe
-from utils import draw_neural_network
+from utils import draw_neural_network, draw_info
 
 
 def main():
+    pygame.init()
+
     screen_width = 800
     screen_height = 600
     background = pygame.transform.scale(
         pygame.image.load("sprites/background.png"), (screen_width, screen_height)
     )
 
-    net_dims = (6, (5, 3), 2)
-    pop_size = 300
+    #net_dims = (6, (5, 3), 1)
+    net_dims = (6, (4, ), 1)
+    pop_size = 400
     nb_generations = 1000
 
     pop = BirdPopulation(
-        pop_size, net_dims, NeuralNework.leaky_relu, "sprites/zubat.png"
+        population_size=pop_size,
+        neural_network_dims=net_dims,
+        # neural_network_activation=NeuralNework.step,
+        neural_network_activation=NeuralNework.relu,
+        # neural_network_activation=NeuralNework.leaky_relu,
+        # neural_network_activation=NeuralNework.sigmoid,
+        # neural_network_activation=NeuralNework.softplus,
+        # neural_network_activation=NeuralNework.silu,
+        # neural_network_activation=NeuralNework.gelu,
+        # neural_network_activation=NeuralNework.elu,
+        # neural_network_activation=NeuralNework.square,
+        # neural_network_activation=lambda x: np.cos(x),
+        bird_sprite="sprites/zubat.png",
     )
     for _ in range(nb_generations):
         screen = pygame.display.set_mode((screen_width, screen_height))
@@ -52,30 +67,20 @@ def main():
                     double_pipes.remove(double_pipe)
                 double_pipe.update(screen)
 
-            has_draw_lines = False
+            draw_info(screen, [b for b in pop.birds if not b.is_dead][-1], double_pipes)
 
             ground.update(screen)
             for bird in pop.birds:
                 if bird.is_dead:
                     continue
 
-                if not has_draw_lines:
-                    has_draw_lines = True
-                    s = bird.sensors(bird.get_next_double_pipe(double_pipes))
-                    pygame.draw.line(screen, (255, 0, 0), bird.pos, (s[2], s[4]))
-                    pygame.draw.line(screen, (0, 255, 0), bird.pos, (s[3], s[4]))
-                    pygame.draw.line(screen, (0, 0, 255), bird.pos, (s[2], s[5]))
-                    outputs = bird.net.get_layers_outputs(
-                        np.array(s).T.reshape((len(s), 1))
-                    )
-                    draw_neural_network(screen, (520, 30), 300, 200, bird.net, outputs)
-
                 bird.time_survived += 1
-                net_input = bird.sensors(bird.get_next_double_pipe(double_pipes))
+                net_input = bird.sensors(bird.get_next_double_pipe(double_pipes), screen)
                 net_input = np.array(net_input).T
                 net_input = net_input.reshape((net_input.shape[0], 1))
                 net_output = bird.net.output(net_input)
-                if np.argmax(net_output) == 1:
+                #if np.argmax(net_output) == 1:
+                if net_output > 0.5:
                     bird.flap()
                 bird.update(screen)
 
@@ -109,18 +114,22 @@ def main():
             current_best_score = max([bird.score for bird in pop.birds])
             birds_alive = sum([not bird.is_dead for bird in pop.birds])
             pygame.display.set_caption(
-                "Flappy Bird | Birds alive : %03d | current best score : %d"
-                % (birds_alive, current_best_score)
+                f"Flappy Bird | Birds alive : {birds_alive:03d} | Score : {current_best_score}"
             )
             pygame.display.update()
 
             tick_passed += 1
             if birds_alive == 0:
                 break
+            if current_best_score > 1000:
+                break
 
+        average_score = sum([bird.score for bird in pop.birds]) / len(pop.birds)
         print()
-        print("Best score of generation %04d : %d" % (pop.gen, current_best_score))
-        pop.natural_selection()
+        print(
+            f"Best score of generation {pop.gen:04d} : {current_best_score} | Average score : {average_score:.3f}"
+        )
+        pop.natural_selection(mutation_rate=0.02, allow_clone=False)
 
     pygame.quit()
 
