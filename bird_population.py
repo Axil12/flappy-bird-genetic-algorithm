@@ -25,7 +25,7 @@ class BirdPopulation:
         for i in range(population_size):
             bird = Bird(self.bird_sprite)
             bird.net = NeuralNework(
-                *neural_network_dims, activation=neural_network_activation
+                neural_network_dims, activation=neural_network_activation
             )
             self.birds.append(bird)
 
