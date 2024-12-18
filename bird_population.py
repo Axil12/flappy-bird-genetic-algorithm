@@ -15,7 +15,7 @@ class BirdPopulation:
         population_size: int,
         neural_network_dims: tuple[int, tuple[int], int],
         neural_network_activation: types.FunctionType,
-        bird_sprite,
+        bird_sprite: str,
     ):
 
         self.population_size = population_size
@@ -40,9 +40,7 @@ class BirdPopulation:
         self.fitness_sum = sum([bird.calculate_fitness() for bird in self.birds])
         return self.fitness_sum
 
-    def select_parents(
-        self, allow_clone: bool = False
-    ) -> tuple[Bird, Bird]:
+    def select_parents(self, allow_clone: bool = False) -> tuple[Bird, Bird]:
         rand = random.uniform(0, self.fitness_sum)
         running_sum = 0
         for bird in self.birds:
@@ -81,7 +79,9 @@ class BirdPopulation:
         for bird in self.birds:
             bird.net.mutate(mutation_rate)
 
-    def natural_selection(self) -> None:
+    def natural_selection(
+        self, mutation_rate: float = 0.01, allow_clone: bool = False
+    ) -> None:
         new_bird_list = []
         self.calculate_fitness_sum()
 
@@ -90,7 +90,7 @@ class BirdPopulation:
             desc=f"Reproduction | Generation {self.gen:04d}",
             ncols=80,
         ):
-            parents = self.select_parents(allow_clone=False)
+            parents = self.select_parents(allow_clone=allow_clone)
             child = self.reproduce(parents[0], parents[1])
             new_bird_list.append(child)
 
