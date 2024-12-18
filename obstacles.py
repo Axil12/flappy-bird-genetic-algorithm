@@ -10,33 +10,26 @@ class Ground:
 
         self.pos1 = [0, screen_height - height]
         self.pos2 = [screen_width, screen_height - height]
+        self.horizontal_vel = -7
 
         self.sprite = pygame.image.load("sprites/ground.png")
         self.sprite = pygame.transform.scale(
             self.sprite, (self.sprite.get_size()[0], height)
         )
 
-        # self.collision_rect = pygame.Rect(
-        #     self.dimensions[0], self.dimensions[1], self.dimensions[2], self.dimensions[3])
-        # self.collision_rect = pygame.Rect(self.sprite.get_rect(
-        #     topleft=(self.dimensions[0], self.dimensions[1])))
         self.collision_rect = pygame.Rect(self.dimensions)
-
-    # def update(self, surface):
-    #     # pygame.draw.rect(surface, self.color, self.dimensions)
-    #     surface.blit(self.sprite, (self.dimensions[0], self.dimensions[1]))
 
     def update(self, surface):
         surface.blit(self.sprite, self.pos1)
         surface.blit(self.sprite, self.pos2)
 
         if self.pos1[0] + self.width < 0:
-            self.pos1[0] = self.pos1[0] + self.width
+            self.pos1[0] = self.pos2[0] + self.width
         if self.pos2[0] + self.width < 0:
             self.pos2[0] = self.pos1[0] + self.width
 
-        self.pos1[0] -= 7
-        self.pos2[0] -= 7
+        self.pos1[0] += self.horizontal_vel
+        self.pos2[0] += self.horizontal_vel
 
 
 class DoublePipe:
