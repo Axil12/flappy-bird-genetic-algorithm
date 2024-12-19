@@ -14,6 +14,7 @@ from utils import draw_neural_network, draw_info
 def main():
     pygame.init()
 
+    simulation_speed = 1.0
     screen_width = 800
     screen_height = 600
     background = pygame.transform.scale(
@@ -29,8 +30,8 @@ def main():
     pop = BirdPopulation(
         population_size=pop_size,
         neural_network_dims=net_dims,
-        neural_network_activation=NeuralNetwork.step,
-        # neural_network_activation=NeuralNetwork.relu,
+        # neural_network_activation=NeuralNetwork.step,
+        neural_network_activation=NeuralNetwork.relu,
         # neural_network_activation=NeuralNetwork.leaky_relu,
         # neural_network_activation=NeuralNetwork.sigmoid,
         # neural_network_activation=NeuralNetwork.softplus,
@@ -58,10 +59,16 @@ def main():
         tick_passed = 0
         is_running = True
         while is_running:
-            clock.tick(30)
+            clock.tick(int(30 * simulation_speed))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     isRunning = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        simulation_speed = min(4.0, simulation_speed + 0.1)
+                    elif event.key == pygame.K_DOWN:
+                        simulation_speed = max(0.1, simulation_speed - 0.1)
+
             screen.blit(background, (0, 0))
 
             for double_pipe in double_pipes:
@@ -122,7 +129,7 @@ def main():
                 if bird.score == current_best_score:
                     best_bird = bird
             pygame.display.set_caption(
-                f"Flappy Bird | Birds alive : {birds_alive:03d} | Score : {current_best_score}"
+                f"Flappy Bird | {simulation_speed:.1f}x Speed | Birds alive : {birds_alive:03d} | Score : {current_best_score}"
             )
             pygame.display.update()
 
@@ -130,7 +137,7 @@ def main():
 
             if birds_alive == 0:
                 break
-            if current_best_score >= 1000:
+            if current_best_score >= 500:
                 bird.net.save(directory="saved_neural_networks")
                 break
 
