@@ -22,16 +22,16 @@ def main():
 
     net_dims = (6, 5, 3, 1)
     # net_dims = (6, 4, 1)
-    #net_dims = (6, 1)
+    # net_dims = (6, 1)
     pop_size = 200
     nb_generations = 1000
 
     pop = BirdPopulation(
         population_size=pop_size,
         neural_network_dims=net_dims,
-        # neural_network_activation=NeuralNetwork.step,
+        neural_network_activation=NeuralNetwork.step,
         # neural_network_activation=NeuralNetwork.relu,
-        neural_network_activation=NeuralNetwork.leaky_relu,
+        # neural_network_activation=NeuralNetwork.leaky_relu,
         # neural_network_activation=NeuralNetwork.sigmoid,
         # neural_network_activation=NeuralNetwork.softplus,
         # neural_network_activation=NeuralNetwork.silu,
@@ -74,6 +74,7 @@ def main():
             ground.update(screen)
             for bird in pop.birds:
                 if bird.is_dead:
+                    bird.death_animation(screen)
                     continue
 
                 bird.time_survived += 1
@@ -117,9 +118,8 @@ def main():
 
             current_best_score = max([bird.score for bird in pop.birds])
             birds_alive = sum([not bird.is_dead for bird in pop.birds])
-            best_fitness = max([bird.fitness for bird in pop.birds])
             for bird in pop.birds:
-                if bird.fitness == best_fitness:
+                if bird.score == current_best_score:
                     best_bird = bird
             pygame.display.set_caption(
                 f"Flappy Bird | Birds alive : {birds_alive:03d} | Score : {current_best_score}"
@@ -139,7 +139,11 @@ def main():
         print(
             f"Best score of generation {pop.gen:04d} : {current_best_score} | Average score : {average_score:.3f}"
         )
-        pop.natural_selection(mutation_rate=0.02, allow_clone=False)
+        pop.natural_selection(
+            mutation_rate=0.02,
+            allow_clone=False,
+            redraw_rate=0.05,
+        )
 
     pygame.quit()
 
