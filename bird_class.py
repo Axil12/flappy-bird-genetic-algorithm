@@ -11,7 +11,7 @@ class Bird:
     def __init__(
         self,
         sprite: str,
-        x: int = 20,
+        x: int = 100,
         y: int = 100,
         size: int = 10,
         flap_force: float = 15,
@@ -25,6 +25,7 @@ class Bird:
 
         self.is_dead = False
         self.time_survived = 0
+        self.time_since_death = 0
         self.score = 0
 
         # self.color = (200, 200, 0)
@@ -49,7 +50,23 @@ class Bird:
         self.vel[1] += gravity
         self.pos[1] += self.vel[1]
 
-    def update(self, surface: pygame.Surface):
+    def death_animation(self, surface: pygame.Surface) -> None:
+        if self.time_since_death >= 50:
+            return
+        if self.time_since_death == 0:
+            self.vel[1] = -20
+
+        self.pos[0] -= 9
+
+        self.fall(gravity=2)
+        rotated_sprite = pygame.transform.rotate(
+            self.sprite, 20 * self.time_since_death
+        )
+        surface.blit(rotated_sprite, self.pos)
+
+        self.time_since_death += 1
+
+    def update(self, surface: pygame.Surface) -> None:
         self.fall()
         self.collision_rect = pygame.Rect(self.sprite.get_rect(topleft=self.pos))
 
@@ -61,7 +78,7 @@ class Bird:
         )
         surface.blit(rotated_sprite, drawing_position)
 
-        if self.pos[1] < 0:
+        if self.pos[1] + self.sprite.get_height() < 0:
             self.is_dead = True
             if self.score == 0:
                 self.time_survived // 2
