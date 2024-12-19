@@ -33,6 +33,7 @@ class NeuralNetwork:
     elu = lambda x: np.where(x > 0, x, np.exp(x) - 1)
     square = lambda x: np.pow(x, 2)
     cube = lambda x: np.pow(x, 3)
+    linear = lambda x: x
 
     def __init__(
         self,
