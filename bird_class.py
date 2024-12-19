@@ -1,6 +1,7 @@
 import random
 from math import atan2, pi
 
+import numpy as np
 import pygame
 from pygame.locals import K_SPACE
 
@@ -113,3 +114,24 @@ class Bird:
 
     def clone(self):
         pass
+
+    def linear_output(self, x: np.array) -> float:
+        """
+        It turns out, Flappy Bird can be solved with a linear equation.
+        It this current implementation of the game, the following factors
+        can solve the game and entierely replace a neural network.
+        """
+        # factors = np.array(
+        #     [
+        #         0.41484223,
+        #         0.09051711,
+        #         -0.42681699,
+        #         0.38675124,
+        #         -0.40437329,
+        #         -0.03219503,
+        #         0.40897791,
+        #     ]
+        # )
+        factors = np.array([[0.4, 0.1, -0.4, 0.4, -0.4, -0.03, 0.4]])
+        x = np.concatenate([x, [[1]]], axis=0)
+        return np.dot(factors, x)
