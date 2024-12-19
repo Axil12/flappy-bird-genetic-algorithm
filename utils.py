@@ -67,7 +67,7 @@ def draw_neural_network(surface, position, width, height, net, layer_outputs):
 def draw_info(
     screen: pygame.Surface, bird: Bird, double_pipes: list[DoublePipe]
 ) -> None:
-    bird.sprite = bird.sprite_alt
+    #bird.sprite = bird.sprite_alt
     next_double_pipe = bird.get_next_double_pipe(double_pipes)
     s = bird.sensors(next_double_pipe, screen)
     bird_center = (
