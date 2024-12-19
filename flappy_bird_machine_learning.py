@@ -24,15 +24,15 @@ def main():
     net_dims = (6, 5, 3, 1)
     # net_dims = (6, 4, 1)
     # net_dims = (6, 1)
-    pop_size = 200
+    pop_size = 300
     nb_generations = 1000
 
     pop = BirdPopulation(
         population_size=pop_size,
         neural_network_dims=net_dims,
-        # neural_network_activation=NeuralNetwork.step,
+        neural_network_activation=NeuralNetwork.step,
         # neural_network_activation=NeuralNetwork.relu,
-        neural_network_activation=NeuralNetwork.leaky_relu,
+        # neural_network_activation=NeuralNetwork.leaky_relu,
         # neural_network_activation=NeuralNetwork.sigmoid,
         # neural_network_activation=NeuralNetwork.softplus,
         # neural_network_activation=NeuralNetwork.silu,
@@ -90,8 +90,8 @@ def main():
                 net_input = np.array(net_input).T
                 net_input = net_input.reshape((net_input.shape[0], 1))
                 net_output = bird.net(net_input)
-                # if np.argmax(net_output) == 1:
                 if net_output > 0.5:
+                    # if bird.linear_output(net_input) > 0.5:
                     bird.flap()
                 bird.update(screen)
 
@@ -137,7 +137,7 @@ def main():
             if birds_alive == 0:
                 break
             if current_best_score >= 500:
-                bird.net.save(directory="saved_neural_networks")
+                best_bird.net.save(directory="saved_neural_networks")
                 break
 
         average_score = sum([bird.score for bird in pop.birds]) / len(pop.birds)
