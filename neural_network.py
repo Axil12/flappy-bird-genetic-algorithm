@@ -54,6 +54,25 @@ class NeuralNetwork:
             for i in range(len(self.dims) - 1)
         ]
 
+    def __repr__(self):
+        string = f"{self.__class__.__name__}"
+        dims_str = "-".join([str(dim) for dim in self.dims])
+        shapes_str = str([w.shape for w in self.weights])
+
+        activation_function_name = None
+        possible_activations = [
+            (key, val) for key, val in NeuralNetwork.__dict__.items() if isalambda(val)
+        ]
+        for act_name, act_func in possible_activations:
+            if self.activation is act_func:
+                activation_function_name = act_name
+                break
+        if activation_function_name is None:
+            activation_function_name = "UNKNOWN"
+
+        string += f"(layer_dims={dims_str}, weights_shapes={shapes_str}, activation={activation_function_name})"
+        return string
+
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """
         Takes an input vector, feeds it to the neural network, and returns an output vector.
@@ -105,10 +124,14 @@ class NeuralNetwork:
             for i in range(0, weight_matrix.shape[0], 1):
                 for j in range(0, weight_matrix.shape[1], 1):
                     if random.random() < mutation_rate:
-                        weight_matrix[i][j] = random.uniform(
-                            self.weight_min_val, self.weight_max_val
+                        # To mutate the weight, we add to it a value drawn from a normal distribution
+                        sigma = 0.25 * abs(self.weight_max_val - self.weight_min_val)
+                        weight_matrix[i][j] += random.gauss(0, sigma)
+                        # Clipping the value of the weight
+                        weight_matrix[i][j] = max(
+                            self.weight_min_val,
+                            min(self.weight_max_val, weight_matrix[i][j]),
                         )
-
 
     def save(self, directory: str, filename: str | None = None) -> None:
         # The following lines aim to convert self.activation into a string representing its name
@@ -122,18 +145,13 @@ class NeuralNetwork:
                 break
         if activation_function_name is None:
             raise ValueError("Couldn't identify the activation function")
-        
 
         if filename is None:
             dims_str = "-".join([str(dim) for dim in self.dims])
             filename = f"{dims_str}_{activation_function_name}.npz"
 
         file_path = os.path.join(directory, filename)
-        np.savez(
-            file_path,
-            np.array(activation_function_name),
-            *self.weights
-            )
+        np.savez(file_path, np.array(activation_function_name), *self.weights)
 
         return file_path
 
@@ -167,14 +185,20 @@ class NeuralNetwork:
 
 
 def main():
-    net = NeuralNetwork((6, 5, 7, 6, 12, 10, 2, 4), activation=NeuralNetwork.leaky_relu)
+    # np.set_printoptions(precision=3)
+
+    net = NeuralNetwork((6, 9, 4, 12, 12, 1), activation=NeuralNetwork.leaky_relu)
     x = np.random.rand(6, 1)
     net.clone()
     NeuralNetwork.crossover(net, net)
     net.mutate(0.5)
     print(net(x))
-    #net.save("saved_neural_networks", "test_save")
-    #print(NeuralNetwork.load("saved_neural_networks\\test_save.npz"))
+    # net.save("saved_neural_networks", "test_save")
+    # print(NeuralNetwork.load("saved_neural_networks\\test_save.npz"))
+
+    net = NeuralNetwork.load("saved_neural_networks\\ultimate_6-1_linear.npz")
+    print(net)
+    print(net.weights)
 
 
 if __name__ == "__main__":
