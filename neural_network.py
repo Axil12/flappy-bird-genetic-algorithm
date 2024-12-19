@@ -108,9 +108,8 @@ class NeuralNetwork:
                             self.weight_min_val, self.weight_max_val
                         )
 
-    def save(self, directory: str, filename: str | None = None) -> None:
-        dims_str = "-".join([str(dim) for dim in self.dims])
 
+    def save(self, directory: str, filename: str | None = None) -> None:
         # The following lines aim to convert self.activation into a string representing its name
         activation_function_name = None
         possible_activations = [
@@ -120,30 +119,36 @@ class NeuralNetwork:
             if self.activation is act_func:
                 activation_function_name = act_name
                 break
-
         if activation_function_name is None:
             raise ValueError("Couldn't identify the activation function")
+        
 
-        new_filename = f"{dims_str}_{activation_function_name}.npz"
-        if filename is not None:
-            new_filename = f"{filename}_{new_filename}"
+        if filename is None:
+            dims_str = "-".join([str(dim) for dim in self.dims])
+            filename = f"{dims_str}_{activation_function_name}.npz"
 
-        file_path = os.path.join(directory, new_filename)
-        np.savez(file_path, *self.weights)
+        file_path = os.path.join(directory, filename)
+        np.savez(
+            file_path,
+            np.array(activation_function_name),
+            *self.weights
+            )
 
         return file_path
 
     @staticmethod
     def load(filename) -> Self:
-        weights = []
+        matrices = []
         with open(filename, "rb") as f:
             npz_file = np.load(f)
-            weights = [npz_file[key] for key in npz_file.keys()]
+            matrices = [npz_file[key] for key in npz_file.keys()]
+
+        func_name = str(matrices[0])
+        weights = matrices[1:]
 
         output_dim = weights[-1].shape[0]
         dims = [w.shape[1] - 1 for w in weights] + [output_dim]
 
-        func_name = filename.replace(".npz", "").split("_")[-1]
         possible_activations = {
             key: val for key, val in NeuralNetwork.__dict__.items() if isalambda(val)
         }
@@ -161,12 +166,14 @@ class NeuralNetwork:
 
 
 def main():
-    net = NeuralNetwork((6, 5, 7, 6, 4), activation=NeuralNetwork.silu)
+    net = NeuralNetwork((6, 5, 7, 6, 12, 10, 2, 4), activation=NeuralNetwork.leaky_relu)
     x = np.random.rand(6, 1)
     net.clone()
     NeuralNetwork.crossover(net, net)
     net.mutate(0.5)
     print(net(x))
+    #net.save("saved_neural_networks", "test_save")
+    #print(NeuralNetwork.load("saved_neural_networks\\test_save.npz"))
 
 
 if __name__ == "__main__":
