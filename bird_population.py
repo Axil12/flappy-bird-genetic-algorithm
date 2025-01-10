@@ -43,32 +43,14 @@ class BirdPopulation:
         return self.fitness_sum
 
     def select_parents(self, allow_clone: bool = False) -> tuple[Bird, Bird]:
-        rand = random.uniform(0, self.fitness_sum)
-        running_sum = 0
-        for bird in self.birds:
-            running_sum += bird.fitness
-            if running_sum > rand:
-                parent_1 = bird
-                break
-
+        weights = [bird.fitness for bird in self.birds]
+        parent_1 = random.choices(self.birds, weights=weights)[0]
         if allow_clone:
-            rand = random.uniform(0, self.fitness_sum)
-            running_sum = 0
-            for bird in self.birds:
-                running_sum += bird.fitness
-                if running_sum > rand:
-                    parent_2 = bird
-                    break
+            parent_2 = random.choices(self.birds, weights=weights)[0]
         else:
             parent_2 = parent_1
             while parent_2 == parent_1:
-                rand = random.uniform(0, self.fitness_sum)
-                running_sum = 0
-                for bird in self.birds:
-                    running_sum += bird.fitness
-                    if running_sum > rand:
-                        parent_2 = bird
-                        break
+                parent_2 = random.choices(self.birds, weights=weights)[0]
 
         return parent_1, parent_2
 
