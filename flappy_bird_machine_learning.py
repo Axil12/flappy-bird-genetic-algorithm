@@ -24,18 +24,18 @@ def main():
     net_dims = (6, 5, 3, 1)
     # net_dims = (6, 4, 1)
     # net_dims = (6, 1)
-    pop_size = 300
+    pop_size = 200
     nb_generations = 1000
 
     pop = BirdPopulation(
         population_size=pop_size,
         neural_network_dims=net_dims,
-        neural_network_activation=NeuralNetwork.step,
+        # neural_network_activation=NeuralNetwork.step,
         # neural_network_activation=NeuralNetwork.relu,
         # neural_network_activation=NeuralNetwork.leaky_relu,
         # neural_network_activation=NeuralNetwork.sigmoid,
         # neural_network_activation=NeuralNetwork.softplus,
-        # neural_network_activation=NeuralNetwork.silu,
+        neural_network_activation=NeuralNetwork.silu,
         # neural_network_activation=NeuralNetwork.gelu,
         # neural_network_activation=NeuralNetwork.elu,
         # neural_network_activation=NeuralNetwork.square,
@@ -51,10 +51,11 @@ def main():
             DoublePipe(
                 screen_width,
                 screen_height,
-                randint(int(screen_height * 0.1), int(screen_height * 0.7)),
+                randint(int(screen_height * 0.1), int(screen_height * 0.6)),
             )
         ]
 
+        ticks_until_next_pipe = 50
         tick_passed = 0
         is_running = True
         while is_running:
@@ -113,11 +114,13 @@ def main():
                             double_pipe.has_given_score_to.append(bird)
                             bird.score += 1
 
-            if tick_passed >= 50:
+            if tick_passed >= ticks_until_next_pipe:
+                ticks_until_next_pipe = 50 + randint(-10, 10)
                 new_douple_pipe = DoublePipe(
                     screen_width,
                     screen_height,
-                    randint(int(screen_height * 0.1), int(screen_height * 0.7)),
+                    randint(int(screen_height * 0.1), int(screen_height * 0.6)),
+                    gap_height=randint(90, 200),
                 )
                 double_pipes.append(new_douple_pipe)
                 tick_passed = 0
