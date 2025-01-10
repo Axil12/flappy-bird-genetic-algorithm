@@ -109,7 +109,8 @@ class Bird:
         return [y_pos, y_vel, gap_x_front, gap_x_back, gap_top, gap_bottom]
 
     def calculate_fitness(self):
-        self.fitness = self.time_survived**2 + (self.score * 300) ** 2
+        # self.fitness = self.time_survived**2 + (self.score * 300) ** 2
+        self.fitness = self.time_survived**2
         return self.fitness
 
     def clone(self):
